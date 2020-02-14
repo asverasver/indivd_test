@@ -3,8 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <title>MJPEG streaming</title>
+    <style>
+      .img-container {
+        text-align: center;
+      }
+    </style>
 </head>
 <body>
+    <div class="img-container">
         <img src="{{ url_for('stream_video_file') }}" />
+    </div>
 </body>
 </html>
