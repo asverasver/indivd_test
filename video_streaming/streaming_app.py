@@ -1,22 +1,29 @@
 #!/usr/bin/python3
-"""This is a web service that streams a video file as an MJPEG stream
+"""This is a web service that streams a video file as an MJPEG stream.
 
 The service has a REST interface and takes a video file name as a
-required parameter, when in started from terminal. If the parameter
-is not provided, or the file specified cannot be opened (it does not
-exist, the app does not have sufficient permissions, etc.), an error
-image is shown.
+required parameter (--video="video.mp4" or -v="video.mp4"), when it is
+started from terminal. If the parameter is not provided, or the file
+specified cannot be opened (it does not exist, the app does not have
+sufficient permissions, etc.), an error image is shown.
 Also, to show the video with an appropriate speed, a framerate
-parameter can be passed. It has default value of 30 frames per second,
-and
+parameter can be passed (--framerate=10 or -f=10). It has the default
+value of 30 frames per second, and limited to
+MIN_FRAMERATE <= framerate <= MAX_FRAMERATE.
+
+To remove any pauses between frames, simply comment the line with
+the sleep function call:
+# sleep(pause_between_frames)
 
   Typical usage example:
 
-  !!! add a terminal example
+  % python streaming_app.py --video="double_decker_video.mp4"
+  or
+  % python streaming_app.py -v="double_decker_video.mp4"
 
   Typical usage example with the framerate parameter specified:
 
-  !!! add a terminal example
+  % python streaming_app.py --video="double_decker_video.mp4" --framerate=10
 
   To see the streaming, open https://127.0.0.1:5000/ in a browser that
   supports MJPEG playback.
@@ -70,18 +77,15 @@ def get_frame_as_bytes(video_file_path: str,
 
     capture = cv2.VideoCapture(video_file_path)
 
-    # FIXME: does not return a proper image to the web page
     if not capture.isOpened():
         error_image_as_bytes = get_error_image_as_bytes()
-        return (b'--frame\r\n'
-                b'Content-Type: image/png\r\n\r\n' + error_image_as_bytes + b'\r\n')
+        yield b'--frame\r\nContent-Type: image/png\r\n\r\n' + error_image_as_bytes + b'\r\n'
 
     while capture.isOpened():
         capture_return_code, frame = capture.read()
         if capture_return_code:
             _, jpeg = cv2.imencode('.jpg', frame)
-            yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + jpeg.tobytes() + b'\r\n')
+            yield (b'--frame\r\nContent-Type: image/jpeg\r\n\r\n' + jpeg.tobytes() + b'\r\n')
             sleep(pause_between_frames)
 
     capture.release()
@@ -111,6 +115,9 @@ if __name__ == "__main__":
         sys.exit(1)
 
     if args.framerate:
-        app.config['framerate'] = args.framerate
+        try:
+            app.config['framerate'] = int(args.framerate)
+        except ValueError:
+            app.config['framerate'] = DEFAULT_FRAMERATE
 
     app.run(ssl_context=('cert.pem', 'key.pem'))
