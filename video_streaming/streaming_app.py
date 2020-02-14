@@ -26,8 +26,9 @@ from time import sleep
 from flask import Flask, render_template, Response
 import cv2
 
-
 DEFAULT_FRAME_RATE = 30
+MIN_FRAME_RATE = 1
+MAX_FRAME_RATE = 120
 ERROR_MESSAGE_IMAGE = 'static/playback_error.png'
 
 app = Flask(__name__)
@@ -39,36 +40,48 @@ def index():
     return render_template('streaming_template.html')
 
 
-def get_frame(video_file_path: str,
-              frame_rate: int = DEFAULT_FRAME_RATE) -> bytes:
+def get_error_image_as_bytes() -> bytes:
+    """Generates a bytes representation of the error message image."""
+    return []
+
+
+def get_frame_as_bytes(video_file_path: str,
+                       frame_rate: int = DEFAULT_FRAME_RATE) -> bytes:
     """Generates a JPEG from the video file frames.
 
     Args:
       video_file_path: A path to the video file.
       frame_rate: Defines the timeout between frames (1/frame_rate).
-                  Limited to 1 <= frame_rate <= 120.
+                  Limited to MIN_FRAME_RATE <= frame_rate <= MAX_FRAME_RATE.
 
     Yields:
-      Next video frame as a JPEG, or an error message image.
+      Bytes representation of the next video frame as an JPEG, or of an error message image.
     """
+    if not frame_rate or not (MIN_FRAME_RATE <= frame_rate <= MAX_FRAME_RATE):
+        frame_rate = DEFAULT_FRAME_RATE
 
-    cap = cv2.VideoCapture(video_file_path)
+    pause_between_frames = 1 / frame_rate
 
-    while cap.isOpened():
-        ret, frame = cap.read()
-        if ret:
-            ret2, jpeg = cv2.imencode('.jpg', frame)
-            yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + jpeg.tobytes() + b'\r\n')
-            sleep(0.025)
+    capture = cv2.VideoCapture(video_file_path)
 
-    cap.release()
+    if not capture.isOpened():
+        return get_error_image_as_bytes()
+    else:
+        while capture.isOpened():
+            capture_return_code, frame = capture.read()
+            if capture_return_code:
+                _, jpeg = cv2.imencode('.jpg', frame)
+                yield (b'--frame\r\n'
+                       b'Content-Type: image/jpeg\r\n\r\n' + jpeg.tobytes() + b'\r\n')
+                sleep(pause_between_frames)
+
+        capture.release()
 
 
 @app.route('/stream_video_file')
 def stream_video_file():
     """Returns a response containing JPEG frames from the video."""
-    return Response(get_frame(),
+    return Response(get_frame_as_bytes(),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
 
