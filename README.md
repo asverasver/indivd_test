@@ -9,6 +9,11 @@ To remove any pauses between frames, simply comment the line with the sleep func
 ```python
 # sleep(pause_between_frames)
 ```
+
+Before starting the service, dependencies should be installed. The best way is to create a [virtual environment](https://pypi.org/project/virtualenv/) (with Python 3.6+), activate it and run dependencies installation process:
+```bash
+% pip install -r requirements.txt 
+```
 Typical usage example:
 ```bash
 % python streaming_app.py --video="double_decker_video.mp4"
