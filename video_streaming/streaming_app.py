@@ -34,6 +34,7 @@ from time import sleep
 from flask import Flask, render_template, Response
 import cv2
 
+
 DEFAULT_FRAMERATE = 30
 MIN_FRAMERATE = 1
 MAX_FRAMERATE = 120
@@ -65,7 +66,7 @@ def get_frame_as_bytes(video_file_path: str,
     Args:
       video_file_path: A path to the video file.
       framerate: Defines the timeout between frames (1/framerate).
-                  Limited to MIN_FRAMERATE <= frame_rate <= MAX_FRAMERATE.
+                 Limited to MIN_FRAMERATE <= frame_rate <= MAX_FRAMERATE.
 
     Yields:
       Bytes representation of the next video frame as an JPEG, or of an error message image.
@@ -85,7 +86,7 @@ def get_frame_as_bytes(video_file_path: str,
         capture_return_code, frame = capture.read()
         if capture_return_code:
             _, jpeg = cv2.imencode('.jpg', frame)
-            yield (b'--frame\r\nContent-Type: image/jpeg\r\n\r\n' + jpeg.tobytes() + b'\r\n')
+            yield b'--frame\r\nContent-Type: image/jpeg\r\n\r\n' + jpeg.tobytes() + b'\r\n'
             sleep(pause_between_frames)
 
     capture.release()
