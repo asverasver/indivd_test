@@ -2,7 +2,8 @@
 
 This is a web service that streams a video file as an MJPEG stream.
 
-The service has a REST interface and takes a video file name as arequired parameter (`--video="video.mp4"` or `-v="video.mp4"`), when itstarted from terminal. If the parameter is not provided, or the filespecified cannot be opened (it does not exist, the app does not havesufficient permissions, etc.), an error image is shown.Also, to show the video with an appropriate speed, a framerateparameter can be passed (`--framerate=10` or `-f=10`). It has the defaultvalue of 30 frames per second, and limited to `MIN_FRAMERATE <= framerate <= MAX_FRAMERATE`.
+The service has a REST interface and takes a video file name as arequired parameter (`--video="video.mp4"` or `-v="video.mp4"`), when it is started from terminal. If the parameter is not provided, or the file specified cannot be opened (it does not exist, the app does not have sufficient permissions, etc.), an error image is shown.
+Also, to show the video with an appropriate speed, a framerate parameter can be passed (`--framerate=10` or `-f=10`). It has the defaul tvalue of 30 frames per second, and limited to `MIN_FRAMERATE <= framerate <= MAX_FRAMERATE` - constants that are defined in the apllication code.
 
 To remove any pauses between frames, simply comment the line with the sleep function call:
 ```python
